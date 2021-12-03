@@ -21,16 +21,19 @@ const useStyles = makeStyles((theme) => ({
     }),
 }));
 
-const LoadScreenshotsController = () => {
+const LoadScreenshotsController = ({data, updateScreenshotsData}) => {
     const classes = useStyles();
 
-    const [files, setFiles] = React.useState([]);
+    const [files, setFiles] = React.useState(data.screenshotFiles);
     const { getRootProps, getInputProps } = useDropzone({
         accept: 'image/*',
         onDrop: acceptedFiles => {
-            setFiles(acceptedFiles.map(file => Object.assign(file, {
+            let processedFiles = acceptedFiles.map(file => Object.assign(file, {
                 preview: URL.createObjectURL(file)
-            })));
+            }));
+            setFiles(processedFiles);
+
+            updateScreenshotsData(processedFiles, false, `已選擇${processedFiles.length}張截圖`);
         }
     });
 

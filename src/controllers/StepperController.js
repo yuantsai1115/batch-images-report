@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { makeStyles } from '@mui/styles';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -8,16 +9,110 @@ import Typography from '@mui/material/Typography';
 import SelectTemplateController from './SelectTemplateController';
 import LoadPhotosController from './LoadPhotosController';
 import LoadScreenshotsController from './LoadScreenshotsController';
+import CircularProgress from '@mui/material/CircularProgress';
+import { TemplateTypeEnum } from '../helpers/enums';
 
 const steps = ['選擇文件樣板', '依順序載入模型截圖', '依順序載入現場照片'];
 
+const useStyles = makeStyles((theme) => ({
+    promptMessage: {
+        justifyContent: 'center',
+        display: 'flex',
+        flexDirection: 'column'
+    }
+}));
+
+const DEFAULT_DATA = {
+    template: {
+        templateTypeEnum: TemplateTypeEnum.DEFAULT,
+        templateFile: undefined,
+        isFailed: false,
+        message: undefined
+    }, screenshots: {
+        screenshotFiles: [],
+        isFailed: false,
+        message: undefined
+    }, photos: {
+        photoFiles: [],
+        isFailed: false,
+        message: undefined
+    }
+};
+
 const StepperController = () => {
+    const classes = useStyles();
     const [activeStep, setActiveStep] = React.useState(0);
     const [skipped, setSkipped] = React.useState(new Set());
+    const [promptMessage, setPromptMessage] = React.useState();
+    const [data, setData] = React.useState(DEFAULT_DATA);
 
-    // const isStepOptional = (step) => {
-    //     return step === 1;
-    // };
+    const updateTemplateData = (templateFileEnum, templateFile, isFailed, message) => {
+        setData({
+            ...data, template: {
+                templateTypeEnum: templateFileEnum,
+                templateFile: templateFile,
+                isFailed: isFailed,
+                message: message
+            }
+        });
+    }
+
+    const updateScreenshotsData = (screenshotFiles, isFailed, message) => {
+        setData({
+            ...data, screenshots: {
+                screenshotFiles: screenshotFiles,
+                isFailed: isFailed,
+                message: message
+            }
+        });
+    }
+
+    const updatePhotosData = (photoFiles, isFailed, message) => {
+        setData({
+            ...data, photos: {
+                photoFiles: photoFiles,
+                isFailed: isFailed,
+                message: message
+            }
+        });
+    }
+
+    const isStepFailed = (step) => {
+        let result = undefined;
+        if (step === 0) {
+            result = data.template.isFailed;
+        } else if (step === 1) {
+            result = data.screenshots.isFailed;
+        } else if (step === 2) {
+            result = data.photos.isFailed;
+        } else {
+            result = false;
+        }
+        return result;
+    };
+    const getMessage = (step) => {
+        let message = "";
+        if (step === 0) {
+            message = data.template.message;
+        } else if (step === 1) {
+            message = data.screenshots.message;
+        } else if (step === 2) {
+            message = data.photos.message;
+        }
+        return message;
+    }
+
+    const isMessageShown = (step) => {
+        let result = false;
+        if (getMessage(step)) {
+            result = true;
+        }
+        return result;
+    }
+
+    const isStepOptional = (step) => {
+        return false; //step === 1;
+    };
 
     const isStepSkipped = (step) => {
         return skipped.has(step);
@@ -29,9 +124,37 @@ const StepperController = () => {
             newSkipped = new Set(newSkipped.values());
             newSkipped.delete(activeStep);
         }
-
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
         setSkipped(newSkipped);
+
+        if (activeStep == 2) { //Validation before generate report
+            //console.log(data);
+            if (data.template.isFailed == true) {
+                setPromptMessage(
+                    <Typography className={classes.promptMessage} variant="caption" color="error">
+                        樣板錯誤導致無法製作報告
+                    </Typography>
+                );
+            } else if (data.screenshots.screenshotFiles.length == 0 || data.photos.photoFiles.length == 0) {
+                setPromptMessage(
+                    <Typography className={classes.promptMessage} variant="caption" color="error">
+                        至少須包含一張模型截圖與照片
+                    </Typography>
+                );
+            } else if (data.screenshots.screenshotFiles.length != data.photos.photoFiles.length) {
+                setPromptMessage(
+                    <Typography className={classes.promptMessage} variant="caption" color="error">
+                        模型截圖與照片需有相同的數量
+                    </Typography>
+                );
+            } else {
+                //pass validation, move to report generation
+                setActiveStep((prevActiveStep) => prevActiveStep + 1);
+                console.log("VALIDATED DATA");
+                console.log(data);
+            }
+        } else {
+            setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        }
     };
 
     const handleBack = () => {
@@ -54,40 +177,54 @@ const StepperController = () => {
     };
 
     const getStep = (index) => {
-        let step;
+        let step = (<Box></Box>);
         if (index == 0) {
-            step = (<SelectTemplateController />);
-
+            step = (<SelectTemplateController data={data.template} updateTemplateData={updateTemplateData} />);
         } else if (index == 1) {
-            step = (<LoadScreenshotsController />);
-
+            step = (<LoadScreenshotsController data={data.screenshots} updateScreenshotsData={updateScreenshotsData} />);
         } else if (index == 2) {
-            step = (<LoadPhotosController />);
-
-        } else {
-            step = (<Box></Box>)
+            step = (<LoadPhotosController data={data.photos} updatePhotosData={updatePhotosData} />);
         }
         return step;
     }
 
     const handleReset = () => {
         setActiveStep(0);
+        setPromptMessage(undefined);
+        setData(DEFAULT_DATA);
     };
 
     return (
         <Box sx={{ width: '100%' }}>
-            <Stepper activeStep={activeStep}>
+            <Stepper activeStep={activeStep} style={{ minHeight: '45px' }}>
                 {steps.map((label, index) => {
                     const stepProps = {};
                     const labelProps = {};
-                    // if (isStepOptional(index)) {
-                    //     labelProps.optional = (
-                    //         <Typography variant="caption">Optional</Typography>
-                    //     );
-                    // }
+                    if (isStepOptional(index)) {
+                        labelProps.optional = (
+                            <Typography variant="caption">Optional</Typography>
+                        );
+                    }
+
+                    if (isMessageShown(index)) {
+                        labelProps.optional = (
+                            <Typography variant="caption">{getMessage(index)}</Typography>
+                        );
+                    }
+
                     if (isStepSkipped(index)) {
                         stepProps.completed = false;
                     }
+
+                    if (isStepFailed(index)) {
+                        labelProps.optional = (
+                            <Typography variant="caption" color="error">
+                                {getMessage(index)}
+                            </Typography>
+                        );
+                        labelProps.error = true;
+                    }
+
                     return (
                         <Step key={label} {...stepProps}>
                             <StepLabel {...labelProps}>{label}</StepLabel>
@@ -98,12 +235,13 @@ const StepperController = () => {
             {activeStep === steps.length ? (
                 //all steps finished
                 <React.Fragment>
-                    <Typography sx={{ mt: 2, mb: 1 }}>
-                        All steps completed - you&apos;re finished
+                    <Typography sx={{ mt: 2, mb: 1}}>
+                        正在製作文件，製作完成後文件將自動下載
+                        <CircularProgress size={20} sx={{marginLeft: '5px'}}/>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                         <Box sx={{ flex: '1 1 auto' }} />
-                        <Button onClick={handleReset}>Reset</Button>
+                        <Button onClick={handleReset}>再次製作</Button>
                     </Box>
                 </React.Fragment>
             ) : (
@@ -127,7 +265,7 @@ const StepperController = () => {
                                 Skip
                             </Button>
                         )} */}
-
+                        {promptMessage}
                         <Button onClick={handleNext}>
                             {activeStep === steps.length - 1 ? '製作文件' : '下一步'}
                         </Button>

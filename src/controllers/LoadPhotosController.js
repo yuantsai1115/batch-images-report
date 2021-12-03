@@ -21,16 +21,19 @@ const useStyles = makeStyles((theme) => ({
     }),
 }));
 
-const LoadPhotoController = () => {
+const LoadPhotoController = ({data, updatePhotosData}) => {
     const classes = useStyles();
 
-    const [files, setFiles] = React.useState([]);
+    const [files, setFiles] = React.useState(data.photoFiles);
     const { getRootProps, getInputProps } = useDropzone({
         accept: 'image/*',
         onDrop: acceptedFiles => {
-            setFiles(acceptedFiles.map(file => Object.assign(file, {
+            let processedFiles = acceptedFiles.map(file => Object.assign(file, {
                 preview: URL.createObjectURL(file)
-            })));
+            }));
+            setFiles(processedFiles);
+
+            updatePhotosData(processedFiles, false, `已選擇${processedFiles.length}張照片`);
         }
     });
 
