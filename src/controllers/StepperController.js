@@ -11,6 +11,11 @@ import LoadPhotosController from './LoadPhotosController';
 import LoadScreenshotsController from './LoadScreenshotsController';
 import CircularProgress from '@mui/material/CircularProgress';
 import { TemplateTypeEnum } from '../helpers/enums';
+import { downloadBlob, dataToReport, blobToDataURL } from './../utils/BlobHelper';
+
+const BINARY_DATA_URL_PREFIX = "data:binary/octet-stream;base64,";
+const APPLICATION_DATA_URL_PREFIX = "data:application/octet-stream;base64,";
+const IMAGE_DATA_URL_PREFIX = "data:image/png;base64,";
 
 const steps = ['選擇文件樣板', '依順序載入模型截圖', '依順序載入現場照片'];
 
@@ -44,6 +49,8 @@ const StepperController = () => {
     const [activeStep, setActiveStep] = React.useState(0);
     const [skipped, setSkipped] = React.useState(new Set());
     const [promptMessage, setPromptMessage] = React.useState();
+    const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
+    const [isGeneratingReportFailed, setIsGeneratingReportFailed] = React.useState(false);
     const [data, setData] = React.useState(DEFAULT_DATA);
 
     const updateTemplateData = (templateFileEnum, templateFile, isFailed, message) => {
@@ -149,8 +156,8 @@ const StepperController = () => {
             } else {
                 //pass validation, move to report generation
                 setActiveStep((prevActiveStep) => prevActiveStep + 1);
-                console.log("VALIDATED DATA");
-                console.log(data);
+                setIsGeneratingReport(true);
+                generateReport();
             }
         } else {
             setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -192,7 +199,56 @@ const StepperController = () => {
         setActiveStep(0);
         setPromptMessage(undefined);
         setData(DEFAULT_DATA);
+        setIsGeneratingReport(false);
+        setIsGeneratingReportFailed(false);
     };
+
+    const generateReport = async () => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+            let template = reader.result;
+            let processedPairs = [];
+            let screenshots = [];
+            let photos = [];
+            
+            for(let screenshot of data.screenshots.screenshotFiles){
+                let screenshotDataUrl = await Promise.resolve().then(r => blobToDataURL(screenshot));
+                screenshots.push(screenshotDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
+            }
+
+            for(let photo of data.photos.photoFiles){
+                let photoDataUrl = await Promise.resolve().then(r => blobToDataURL(photo));
+                photos.push(photoDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
+            }
+
+            if(screenshots.length == photos.length){
+                for(let i=0; i<screenshots.length; ++i){
+                    processedPairs.push({screenshot: screenshots[i], photo: photos[i]});
+                }
+                console.log(processedPairs);
+
+                try {
+                    downloadBlob(
+                        "report.docx",
+                        await dataToReport(processedPairs, template),
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        () => { setIsGeneratingReport(false) }
+                    );
+                } catch (ex) {
+                    console.log(ex);
+                    setIsGeneratingReportFailed(true);
+                }
+            }
+            
+        };
+        let templateFile;;
+        if (data.template.templateTypeEnum == TemplateTypeEnum.LOCAL) {
+            templateFile = data.template.templateFile;
+        } else {
+            templateFile = await fetch(`${process.env.PUBLIC_URL}/template.docx`).then(r => r.blob());
+        }
+        reader.readAsArrayBuffer(templateFile);
+    }
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -235,10 +291,15 @@ const StepperController = () => {
             {activeStep === steps.length ? (
                 //all steps finished
                 <React.Fragment>
-                    <Typography sx={{ mt: 2, mb: 1}}>
-                        正在製作文件，製作完成後文件將自動下載
-                        <CircularProgress size={20} sx={{marginLeft: '5px'}}/>
-                    </Typography>
+                    {
+                        isGeneratingReport ? !isGeneratingReportFailed ? (
+                            <Typography sx={{ mt: 2, mb: 1 }}>
+                                正在製作文件，製作完成後文件將自動下載
+                                <CircularProgress size={20} sx={{ marginLeft: '5px' }} />
+                            </Typography>)
+                            : (<Typography sx={{ mt: 2, mb: 1 }} color="error">製作文件時發生不可預期的錯誤，請確認是否使用正確的文件樣板。</Typography>)
+                            : (<Typography sx={{ mt: 2, mb: 1 }}>已完成製作文件！</Typography>)
+                    }
                     <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                         <Box sx={{ flex: '1 1 auto' }} />
                         <Button onClick={handleReset}>再次製作</Button>
