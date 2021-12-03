@@ -209,23 +209,37 @@ const StepperController = () => {
             let template = reader.result;
             let processedPairs = [];
             let screenshots = [];
+            let screenshotsRatios = [];
             let photos = [];
+            let photosRatios = [];
             
-            for(let screenshot of data.screenshots.screenshotFiles){
+            for (let screenshot of data.screenshots.screenshotFiles) {
                 let screenshotDataUrl = await Promise.resolve().then(r => blobToDataURL(screenshot));
                 screenshots.push(screenshotDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
+
+                const img = new Image();
+                img.src = screenshot.preview;
+                document.body.appendChild(img);
+                screenshotsRatios.push(img.width / img.height);
+                document.body.removeChild(img);
             }
 
-            for(let photo of data.photos.photoFiles){
+            for (let photo of data.photos.photoFiles) {
                 let photoDataUrl = await Promise.resolve().then(r => blobToDataURL(photo));
                 photos.push(photoDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
+
+                const img = new Image();
+                img.src = photo.preview;
+                document.body.appendChild(img);
+                photosRatios.push(img.width / img.height);
+                document.body.removeChild(img);
             }
 
-            if(screenshots.length == photos.length){
-                for(let i=0; i<screenshots.length; ++i){
-                    processedPairs.push({screenshot: screenshots[i], photo: photos[i]});
+            if (screenshots.length == photos.length) {
+                for (let i = 0; i < screenshots.length; ++i) {
+                    processedPairs.push({ screenshot: screenshots[i], screenshotRatio: screenshotsRatios[i], photo: photos[i], photoRatio: photosRatios[i] });
                 }
-                console.log(processedPairs);
+                //console.log(processedPairs);
 
                 try {
                     downloadBlob(
@@ -239,7 +253,7 @@ const StepperController = () => {
                     setIsGeneratingReportFailed(true);
                 }
             }
-            
+
         };
         let templateFile;;
         if (data.template.templateTypeEnum == TemplateTypeEnum.LOCAL) {
