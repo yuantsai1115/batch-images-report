@@ -21,6 +21,14 @@ export const dataToReport = async (pairs, template) => {
         data: {
             pairs: pairs
         },
+        additionalJsContext: {
+            imageData: (dataUrl, imageRatio, h) => {
+                const data = dataUrl.slice('data:image/png;base64,'.length);
+                let w = imageRatio*h;
+                return {width: w, height: h, data, extension: '.png'};
+            },
+        }
+        
         // cmdDelimiter won't work for looping
         // cmdDelimiter: ['{', '}'],
     })

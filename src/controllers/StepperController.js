@@ -315,7 +315,7 @@ const StepperController = () => {
                             : (
                             <React.Fragment>
                                 <Typography sx={{ mt: 2, mb: 1 }}>已完成製作文件！</Typography>
-                                <Typography variant="caption" sx={{ mt: 2, mb: 1 }}>注意!若您是使用Word 2013以前的版本，請先以新版本的Word另存新檔，再開始使用。</Typography>
+                                {/* <Typography variant="caption" sx={{ mt: 2, mb: 1 }}>注意!若您是使用Word 2013以前的版本，請先以新版本的Word另存新檔，再開始使用。</Typography> */}
                             </React.Fragment>
                             )
                     }
