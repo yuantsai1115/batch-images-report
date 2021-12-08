@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Link } from 'react-router';
 import { makeStyles } from '@mui/styles';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
@@ -213,7 +212,7 @@ const StepperController = () => {
             let screenshotsRatios = [];
             let photos = [];
             let photosRatios = [];
-            
+
             for (let screenshot of data.screenshots.screenshotFiles) {
                 let screenshotDataUrl = await Promise.resolve().then(r => blobToDataURL(screenshot));
                 screenshots.push(screenshotDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
@@ -313,7 +312,12 @@ const StepperController = () => {
                                 <CircularProgress size={20} sx={{ marginLeft: '5px' }} />
                             </Typography>)
                             : (<Typography sx={{ mt: 2, mb: 1 }} color="error">製作文件時發生不可預期的錯誤，請確認是否使用正確的文件樣板。</Typography>)
-                            : (<Typography sx={{ mt: 2, mb: 1 }}>已完成製作文件！</Typography>)
+                            : (
+                            <React.Fragment>
+                                <Typography sx={{ mt: 2, mb: 1 }}>已完成製作文件！</Typography>
+                                <Typography variant="caption" sx={{ mt: 2, mb: 1 }}>注意!若您是使用Word 2013以前的版本，請先以新版本的Word另存新檔，再開始使用。</Typography>
+                            </React.Fragment>
+                            )
                     }
                     <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                         <Box sx={{ flex: '1 1 auto' }} />
