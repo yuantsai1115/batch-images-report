@@ -213,6 +213,9 @@ const StepperController = () => {
             let photos = [];
             let photosRatios = [];
 
+            console.log("GENERATE REPORT");
+            console.log(data);
+
             for (let screenshot of data.screenshots.screenshotFiles) {
                 let screenshotDataUrl = await Promise.resolve().then(r => blobToDataURL(screenshot));
                 screenshots.push(screenshotDataUrl?.replace(BINARY_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX)?.replace(APPLICATION_DATA_URL_PREFIX, IMAGE_DATA_URL_PREFIX));
@@ -220,7 +223,8 @@ const StepperController = () => {
                 const img = new Image();
                 img.src = screenshot.preview;
                 document.body.appendChild(img);
-                screenshotsRatios.push(img.width / img.height);
+                let ratio = img.width/img.height || 4/3;
+                screenshotsRatios.push(ratio);
                 document.body.removeChild(img);
             }
 
@@ -231,7 +235,8 @@ const StepperController = () => {
                 const img = new Image();
                 img.src = photo.preview;
                 document.body.appendChild(img);
-                photosRatios.push(img.width / img.height);
+                let ratio = img.width/img.height || 4/3;
+                photosRatios.push(ratio);
                 document.body.removeChild(img);
             }
 

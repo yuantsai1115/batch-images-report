@@ -1,4 +1,5 @@
 import createReport from 'docx-templates';
+global.Buffer = global.Buffer || require('buffer').Buffer
 
 export const downloadBlob = (filename, content, mimeType, callback) => {
     const blob = new Blob([content], { type: mimeType });
@@ -25,7 +26,7 @@ export const dataToReport = async (pairs, template) => {
             imageData: (dataUrl, imageRatio, h) => {
                 const data = dataUrl.slice('data:image/png;base64,'.length);
                 let w = imageRatio*h;
-                return {width: w, height: h, data, extension: '.png'};
+                return {width: w, height: h, data: data, extension: '.png'};
             },
         }
         
