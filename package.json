@@ -13,11 +13,13 @@
     "@emotion/styled": "latest",
     "@mui/material": "latest",
     "@mui/styles": "^5.2.2",
-    "docx-templates": "^4.8.2",
+    "buffer": "^6.0.3",
+    "docx-templates": "^4.9.1",
     "react": "latest",
     "react-dom": "latest",
     "react-dropzone": "^11.4.2",
-    "react-scripts": "latest"
+    "react-scripts": "latest",
+    "vm-browserify": "^1.1.2"
   },
   "browserslist": {
     "production": [
