@@ -1,40 +1,24 @@
-# Create React App example
+# Batch Images Report for Onsite Inspection
+A web-based tool for generating sheets for onsite rebar inspection. It speeds up the preparation of filling the design data of RC columns/beams into each inspection sheet by 5 times. Specifically, in conventional procedure, inspectors may spend couple hours to extract the design data from drawings and fill them into the sheets. This tool automatically extracts data from building information models and generate the sheets accordingly. Inspectors then bring all the sheets to conduct quality check of rebars.
 
-## How to use
+[Rebar Inspection Sheet Generating.mp4](https://user-images.githubusercontent.com/119405090/218063414-3f433d85-748e-4956-b70f-f4609babdd0e.mp4)
 
-Download the example [or clone the repo](https://github.com/mui-org/material-ui):
+## Features
+- Generating inspection sheet from BIM model
+- Costomisable Word template
+- No installation needed
 
-<!-- #default-branch-switch -->
+## Live Demo
+Main branch is deployed to https://structural-inspection.netlify.app/.
 
-```sh
-curl https://codeload.github.com/mui-org/material-ui/tar.gz/master | tar -xz --strip=2 material-ui-master/examples/create-react-app
-cd create-react-app
-```
+## Project Setup
+### Prerequisites
+- Node.js v16 and above
 
-Install it and run:
+### Setup
+- clone this repository
+- install dependencies: `yarn install`
+- run server: `yarn start`
+- go to http://localhost:3000
 
-```sh
-npm install
-npm start
-```
-
-or:
-
-<!-- #default-branch-switch -->
-
-[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/mui-org/material-ui/tree/master/examples/create-react-app)
-
-## The idea behind the example
-
-<!-- #default-branch-switch -->
-
-This example demonstrates how you can use [Create React App](https://github.com/facebookincubator/create-react-app).
-It includes `@mui/material` and its peer dependencies, including `emotion`, the default style engine in MUI v5.
-If you prefer, you can [use styled-components instead](https://mui.com/guides/interoperability/#styled-components).
-
-## What's next?
-
-<!-- #default-branch-switch -->
-
-You now have a working example project.
-You can head back to the documentation, continuing browsing it from the [templates](https://mui.com/getting-started/templates/) section.
+Enjoy :metal:
