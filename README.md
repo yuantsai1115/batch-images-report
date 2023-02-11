@@ -7,13 +7,13 @@ A web-based tool for generating sheets for onsite rebar inspection. It speeds up
 
 [Batch Images Report.mp4](https://user-images.githubusercontent.com/119405090/218248111-7bbe60b0-bc40-4d81-9e15-0cb8d7da9278.mp4)
 
+## Live Demo
+Main branch is deployed to https://tools.sugoiitech.com/.
+
 ## Features
 - Generating inspection sheet from BIM model
 - Costomisable Word template
 - No installation needed
-
-## Live Demo
-Main branch is deployed to https://tools.sugoiitech.com/.
 
 ## Project Setup
 ### Prerequisites
